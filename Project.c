@@ -89,54 +89,85 @@ int main()
 
 
   //PG Plot Settings
-  
-  int fttFlag = true, dataFlag = true, scaleFlag = false;
-  float cursorX, cursorY;
+  int fttFlag = true, dataFlag = true, scaleFlag = false, fftPointFlag = true, dataPointFlag = true;
+  float cursorX, cursorY, yScale = 0.1, xScale = 5;
   char command;
+
 
   if(cpgopen("/XWINDOW") != 1)
     return EXIT_FAILURE;
   
   cpgask(false);
+  
   cpgenv(xStart, xEnd , yStart, yEnd, 0, 1);
-  cpglab("Wavelength", "Intensity", "Spectrum");
-  
-  cpgline(N, X, Y);
+  cpglab("Wavelength", "Intensity", "Sirius Chiron 8 Feb 2021 100 exposures");
+  cpgmtxt("T",2.0,0.0,0.0,"Q=QUIT, H=Hardcopy");
+  cpgmtxt("T",1.0,0.0,0.0,"r=Reset View, Left-Click=Go To, u=Toggle FTT Line, i=Toggle FTT Points, s=Toggle Scale");
+  cpgmtxt("T",0.2,0.0,0.0,"o=Toggle Data Line, p=Toggle Data Points, [=Smooth FTT , ]=Rough FTT");
+  cpgmtxt("B",4,0.0,0.0,"z=Zoom In X, x=Zoom Out X, c=Zoom In Y, v=Zoom Out Y");
+  cpgsls(2);
   cpgline(N-3, X1, Y2);
-  
+  cpgsls(1);
+  cpgline(N, X, Y);
   cpgpt(N, X, Y, 1);
+
   //Commands from the cursor
   while(true)
   {
     int cursorFlag = cpgcurs( &cursorX, &cursorY, &command);
     
-    if(command == 'q' || command == 'q')
+    if(command == 'q' || command == 'Q')
     {
       break;
     }
+    else if(command == 'A')
+    {
+      xStart = cursorX - xScale;
+      xEnd = cursorX + xScale;
+      yStart = cursorY - yScale;
+      yEnd = cursorY + yScale;
+    }
+    else if(command == 'c')
+    {
+      if(yScale > 0.02)
+        yScale -= 0.02;
+      
+      yStart = cursorY - yScale;
+      yEnd = cursorY + yScale;
+    }
+    else if(command == 'v')
+    {
+     
+      yScale += 0.02;
+      
+      yStart = cursorY - yScale;
+      yEnd = cursorY + yScale;
+    }
     else if(command == 'z')
     {
-      xStart = cursorX - 5;
-      xEnd = cursorX + 5;
-      cpgenv(xStart, xEnd, yStart, yEnd, 0, 1);
-      cpglab("Wavelength", "Intensity", "Spectrum");
-      if(fttFlag)
-        cpgline(N-3, X1, Y2);
-      if (dataFlag)
-        cpgline(N, X, Y);
+      if(xScale > 1)
+        xScale -= 1;
       
+      xStart = cursorX - xScale;
+      xEnd = cursorX + xScale;
+    }
+    else if(command == 'x')
+    {
+     
+      xScale += 1;
+      
+      xStart = cursorX - xScale;
+      xEnd = cursorX + xScale;
     }
     else if(command == 'r')
     {
       xStart = Xmin;
       xEnd = Xmax;
-      cpgenv(xStart, xEnd, yStart, yEnd, 0, 1);
-      cpglab("Wavelength", "Intensity", "Spectrum");
-      if(fttFlag)
-        cpgline(N-3, X1, Y2);
-      if (dataFlag)
-        cpgline(N, X, Y);
-      
+      yStart = Ymin;
+      yEnd = Ymax;
+      yScale = 0.1;
+      xScale = 5;
+
     }
     else if(command == ']')
     {
@@ -144,7 +175,6 @@ int main()
         fftSmooth += 10;
       callPython(fftSmooth);
       fftFile = fopen("fft.dat", "r"); 
-      
       for(int i = 0; i < N-3; i++)
       {
         
@@ -153,16 +183,6 @@ int main()
           
       }
       fclose(fftFile);
-      cpgeras();
-      cpgenv(xStart, xEnd , yStart, yEnd, 0, 1);
-      cpglab("Wavelength", "Intensity", "Spectrum");
-      cpgsls(2);
-      cpgline(N-3, X1, Y2);
-      cpgsls(1);
-      if(dataFlag == true)
-      {
-        cpgline(N, X, Y);
-      }
     }
     else if(command == '[')
     {
@@ -179,85 +199,63 @@ int main()
           
       }
       fclose(fftFile);
-      cpgeras();
-      cpgenv(xStart, xEnd , yStart, yEnd, 0, 1);
-      cpglab("Wavelength", "Intensity", "Spectrum");
-      cpgsls(2);
-      cpgline(N-3, X1, Y2);
-      cpgsls(1);
-      if(dataFlag == true)
-      {
-        cpgline(N, X, Y);
-      }
     }
     
-    
-    
     //Toggle Data Commands
-    else if(command == 't')
+    else if(command == 'u')
     {
       //Show the data
       if(fttFlag == false)
       {
-        cpgeras();
-        cpgenv(xStart, xEnd , yStart, yEnd, 0, 1);
-        cpglab("Wavelength", "Intensity", "Spectrum");
-        cpgsls(2);
-        cpgline(N-3, X1, Y2);
-        cpgsls(1);
-
-        if(dataFlag == true)
-        {
-          cpgline(N, X, Y);
-        }
         fttFlag = true;
       }
       else
       {
-        cpgeras();
-        cpgenv(xStart, xEnd , yStart, yEnd, 0, 1);
-        cpglab("Wavelength", "Intensity", "Spectrum");
-        if(dataFlag == true)
-        {
-          cpgline(N, X, Y);
-        }
         fttFlag = false;
       }
+   
       
     }
-    else if(command == 'y')
+    else if(command == 'o')
     {
       if(dataFlag == false)
       {
-        cpgeras();
-        cpgenv(xStart, xEnd , yStart, yEnd, 0, 1);
-        cpglab("Wavelength", "Intensity", "Spectrum");
         
-        cpgline(N, X, Y);
-        
-        if(fttFlag == true)
-        {
-          cpgsls(2);
-          cpgline(N-3, X1, Y2);
-          cpgsls(1);
-        }
         dataFlag = true;
       }
       else
       {
-        cpgeras();
-        cpgenv(xStart, xEnd , yStart, yEnd, 0, 1);
-        cpglab("Wavelength", "Intensity", "Spectrum");
-        if(fttFlag == true)
-        {
-          cpgsls(2);
-          cpgline(N-3, X1, Y2);
-          cpgsls(1);
-        }
         dataFlag = false;
       }
+      
+    }
+    else if(command == 'i')
+    {
+      if(fftPointFlag == false)
+      {
+        
+        fftPointFlag = true;
+      }
+      else
+      {
+        fftPointFlag = false;
+      }
+    }
+    else if(command == 'p')
+    {
+      if(dataPointFlag == false)
+      {
+        
+        dataPointFlag = true;
+      }
+      else
+      {
+        dataPointFlag = false;
+      }
+      
     
     }
+    
     else if(command == 's')
     {
       if(scaleFlag)
@@ -270,12 +268,7 @@ int main()
         yStart = Ymin;
         scaleFlag = true;
       }
-      cpgenv(xStart, xEnd , yStart, yEnd, 0, 1);
-      cpglab("Wavelength", "Intensity", "Spectrum");
-      if(fttFlag)
-        cpgline(N-3, X1, Y2);
-      if (dataFlag)
-        cpgline(N, X, Y);
+      
     }
     else if(command == 'h')
     {
@@ -283,11 +276,38 @@ int main()
       cpgenv(xStart, xEnd , yStart, yEnd, 0, 1);
       cpglab("Wavelength", "Intensity", "Spectrum");
       cpgline(N, X, Y);
+      cpgpt(N, X, Y, 1);
       cpgline(N-3, X1, Y2);
       cpgclos();
       cpgslct(1);
     }
 
+
+    cpgenv(xStart, xEnd , yStart, yEnd, 0, 1);
+    cpglab("Wavelength", "Intensity", "Sirius Chiron 8 Feb 2021 100 exposures");
+    cpgmtxt("T",2.0,0.0,0.0,"Q=QUIT, H=Hardcopy");
+    cpgmtxt("T",1.0,0.0,0.0,"r=Reset View, Left-Click=Go To, u=Toggle FTT Line, i=Toggle FTT Points");
+    cpgmtxt("T",0.2,0.0,0.0,"o=Toggle Data Line, p=Toggle Data Points, [=Smooth FTT , ]=Rough FTT");
+    cpgmtxt("B",4,0.0,0.0,"z=Zoom In X, x=Zoom Out X, c=Zoom In Y, v=Zoom Out Y");
+    if(fttFlag)
+    {
+      cpgsls(2);
+      cpgline(N-3, X1, Y2);
+      cpgsls(1);
+    }
+    if(fftPointFlag)
+    {
+      cpgpt(N-3, X1, Y2, 1);
+    }
+    if(dataPointFlag)
+    {
+      cpgpt(N, X, Y, 1);
+    } 
+    if(dataFlag)
+    {
+      cpgline(N, X, Y);
+      
+    }
   }
   
   cpgend();
