@@ -8,6 +8,7 @@ if __name__ == "__main__":
     n = int(sys.argv[1])
     x = []
     y = []
+    hanning = []
 
     ymax = -100
     ymin = 100
@@ -25,8 +26,12 @@ if __name__ == "__main__":
     N = j
     # sample spacing
 
+    
     rft = np.fft.rfft(y)
-    rft[n:] = 0
+    
+    
+    rft[n:] = np.hanning(n)[0]
+    
     y_smooth = np.fft.irfft(rft)
 
     with open("fft.dat", "w") as f:

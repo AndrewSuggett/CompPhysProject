@@ -20,7 +20,7 @@ int main()
   xStart, xEnd, yStart, yEnd;
   
   int N = 3911;
-  int fftSmooth = 100;
+  int fftSmooth = 170;
   FILE  *inputFile = fopen("data.dat", "r");
   FILE  *fftFile;
   
@@ -186,7 +186,7 @@ int main()
     }
     else if(command == '[')
     {
-      if(fftSmooth > 20)
+      if(fftSmooth > 180)
         fftSmooth -= 10;
       callPython(fftSmooth);
       fftFile = fopen("fft.dat", "r"); 
